@@ -1,24 +1,34 @@
 from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
+# from langchain_anthropic import ChatAnthropic
+from dotenv import load_dotenv
 import os
+load_dotenv()
 
-GOOGLE_API_KEY = os.getenv("GEMINI_API_KEY")
-# import google.generativeai as genai
-#
-# genai.configure(api_key=GOOGLE_API_KEY)
-# model = genai.GenerativeModel("gemini-1.5-flash")
-# response = model.generate_content("can you solve integration of lnx over 1 to 10 with detail steps? use strictly mat notation dont write in terms of <sup>")
-# print(response.text)
+# model = ChatAnthropic(model='claude-3-opus-20240229')
 
-
+## setting up llm
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+#  LLm that i am using we can switch to other if required
 llm = ChatGoogleGenerativeAI(
-    google_api_key=GOOGLE_API_KEY,
-    model="gemini-1.5-pro",
+    model="gemini-2.0-flash-exp",
     temperature=0.8,
     timeout=None,
     max_retries=2,
 )
-response = llm.invoke("you are math teacher for class 10th cbse and you are assigned to make question paper for class test, test consists of 10 questions and it is strictly on topics 'real number',"
-                      "'quadratic equations' of mcq type, provide hint for teacher in separate line so they can solve"
-                      "raise the standard and make it 5 question difficult to solve"
-                      "")
+
+## embeddings
+embeddings = GoogleGenerativeAIEmbeddings(model="models/text-embedding-004")
+vector = embeddings.embed_query("hello, world!")
+
+## prompts
+message=[
+ SystemMessage("You are an teacher assistant for class 10 and your job is to prepare multiple choice question, answer and hint on given topic"),
+ HumanMessage("Prepare 10 question on topic Quadratic Equation, make 5 of medium level and 5 of hard level, write question in mathematical term/notation and in last give answer and hint as well don;t use unnecessary notation")
+]
+
+response = llm.invoke(message)
 print(response.content)
+
